@@ -1,6 +1,6 @@
 {
-    "name": "Simple Camera App",
-    "short_name": "CameraApp",
+    "name": "Life App",
+    "short_name": "LifeApp",
     "start_url": "./index.html",
     "display": "standalone",
     "background_color": "#ffffff",
