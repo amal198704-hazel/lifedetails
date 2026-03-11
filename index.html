@@ -1,868 +1,1870 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>Beneficiary · Smart Dashboard</title>
-    <!-- Font Awesome 6 (free) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Survey Pro - Smart Survey App</title>
+
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="manifest" href="manifest.json">
+    <!-- Simple lightbox for images (no PhotoSwipe) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <style>
         * {
+            margin: 0;
+            padding: 0;
             box-sizing: border-box;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Segoe UI', Roboto, Arial, sans-serif;
         }
 
         body {
-            margin: 0;
-            background: #f4f6fb;
-            display: flex;
-            flex-direction: column;
+            background: #f8fafd;
+            padding-bottom: 80px;
             min-height: 100vh;
         }
 
-        /* header with gradient */
         .app-header {
-            background: linear-gradient(145deg, #0f5fa3, #1b7aca);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 20px 16px 16px 16px;
-            box-shadow: 0 4px 12px rgba(0, 40, 80, 0.2);
+            padding: 20px 16px;
+            border-bottom-left-radius: 24px;
+            border-bottom-right-radius: 24px;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+            margin-bottom: 16px;
         }
 
-        .app-header h2 {
-            margin: 0;
+        .app-header h1 {
+            font-size: 24px;
             font-weight: 600;
-            font-size: 1.7rem;
-            letter-spacing: -0.3px;
-        }
-
-        .app-header .sub {
-            opacity: 0.85;
-            font-size: 0.9rem;
-            margin-top: 4px;
-        }
-
-        /* main content area with bottom nav offset */
-        .main-content {
-            flex: 1;
-            padding: 16px 16px 80px 16px;
-            max-width: 780px;
-            margin: 0 auto;
-            width: 100%;
-        }
-
-        /* dashboard cards (category stats) */
-        .dashboard-row {
             display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin-bottom: 24px;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .app-header h1 i {
+            font-size: 28px;
+        }
+
+        .app-header p {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            padding: 0 16px;
+            margin-bottom: 20px;
         }
 
         .stat-card {
             background: white;
-            border-radius: 22px;
-            padding: 14px 18px;
-            flex: 1 1 calc(33.33% - 12px);
-            min-width: 100px;
-            box-shadow: 0 8px 18px -6px rgba(0, 60, 120, 0.15);
-            border: 1px solid rgba(25, 118, 210, 0.1);
-            backdrop-filter: blur(2px);
-            transition: 0.2s;
+            padding: 12px;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            text-align: center;
         }
 
-        .stat-card .cat-name {
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 0.4px;
-            color: #5e6f8d;
-            font-weight: 600;
+        .stat-card i {
+            font-size: 20px;
+            color: #667eea;
+            margin-bottom: 4px;
         }
 
-        .stat-card .cat-count {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #0f3b5e;
-            line-height: 1.2;
+        .stat-card .stat-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
         }
 
-        .stat-card .cat-total {
-            font-size: 0.9rem;
-            color: #1976d2;
-            font-weight: 500;
+        .stat-card .stat-label {
+            font-size: 11px;
+            color: #888;
         }
 
-        /* filter bar */
-        .filter-bar {
+        .compact-card {
             background: white;
-            padding: 14px 16px;
-            border-radius: 28px;
-            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.04);
-            margin-bottom: 24px;
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 12px;
-            border: 1px solid #e9ecf2;
-        }
-
-        .filter-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            background: #f1f5fc;
-            border-radius: 40px;
-            padding: 5px 16px 5px 12px;
-        }
-
-        .filter-item label {
-            font-weight: 600;
-            color: #1e4f7a;
-            font-size: 0.9rem;
-        }
-
-        .filter-item select,
-        .filter-item input {
-            border: none;
-            background: transparent;
-            padding: 8px 0;
-            font-size: 0.95rem;
-            outline: none;
-            font-weight: 500;
-            color: #0d3a5e;
-        }
-
-        .filter-item i {
-            color: #1976d2;
-            font-size: 0.9rem;
-        }
-
-        .search-box {
-            flex: 1;
-            min-width: 200px;
-            background: #f1f5fc;
-            border-radius: 40px;
-            padding: 5px 16px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .search-box i {
-            color: #1976d2;
-            font-size: 1rem;
-        }
-
-        .search-box input {
-            border: none;
-            background: transparent;
-            width: 100%;
-            padding: 8px 0;
-            outline: none;
-            font-size: 0.95rem;
-        }
-
-        .reset-btn {
-            background: none;
-            border: 1px solid #cbd6e6;
-            border-radius: 30px;
-            padding: 6px 14px;
-            color: #2a4f77;
-            font-weight: 500;
-            cursor: pointer;
-            transition: 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .reset-btn i {
-            font-size: 0.9rem;
-        }
-
-        .reset-btn:hover {
-            background: #e3eaf3;
-        }
-
-        /* beneficiary card */
-        .bene-card {
-            background: white;
-            margin: 16px 0;
-            padding: 16px 18px;
-            border-radius: 26px;
-            box-shadow: 0 8px 22px -8px rgba(25, 118, 210, 0.2);
-            border: 1px solid rgba(0, 0, 0, 0.02);
-            transition: transform 0.1s, box-shadow 0.2s;
-            cursor: pointer;
-        }
-
-        .bene-card:active {
-            transform: scale(0.99);
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .row {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            align-items: baseline;
-            margin-bottom: 8px;
-        }
-
-        .reg-badge {
-            background: #e1efff;
-            color: #135b9e;
-            font-weight: 700;
-            padding: 4px 12px;
-            border-radius: 50px;
-            font-size: 0.8rem;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .reg-badge i {
-            font-size: 0.7rem;
-        }
-
-        .name-large {
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: #0e3f66;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .name-large i {
-            color: #1976d2;
-            font-size: 1.2rem;
-        }
-
-        .list-name {
-            color: #577a9e;
-            font-weight: 500;
-            font-size: 0.95rem;
-            margin-left: 28px;
-        }
-
-        .meta-line {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px 20px;
-            margin-top: 8px;
-            color: #305e83;
-            font-weight: 500;
-        }
-
-        .meta-line span {
-            background: #f0f6fe;
-            padding: 4px 12px;
-            border-radius: 30px;
-            font-size: 0.85rem;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .meta-line i {
-            color: #1976d2;
-            font-size: 0.8rem;
-        }
-
-        .total-amount {
-            font-weight: 700;
-            color: #1f6c33;
-            background: #e2f0e4;
-            padding: 4px 14px;
-            border-radius: 40px;
-            font-size: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .total-amount i {
-            color: #2e7d32;
-        }
-
-        .category-tag {
-            background: #1976d2;
-            color: white;
-            padding: 4px 14px;
-            border-radius: 40px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        /* detail view */
-        .detail-container {
-            background: white;
-            border-radius: 32px;
-            padding: 20px;
-            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1);
-        }
-
-        .backBtn {
-            background: #ffffff;
-            border: 1px solid #c2d6ed;
-            padding: 10px 20px;
-            border-radius: 40px;
-            font-weight: 600;
-            color: #135b9e;
-            margin-bottom: 18px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
-            cursor: pointer;
-            font-size: 1rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .backBtn i {
-            font-size: 1rem;
-        }
-
-        .backBtn:hover {
-            background: #ecf3fc;
-        }
-
-        .accounts-block {
-            background: #f4f9ff;
+            border-radius: 16px;
             padding: 16px;
+            margin: 8px 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 4px solid #667eea;
+        }
+
+        .compact-card:hover {
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+
+        .compact-card .main-info h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .compact-card .main-info .details {
+            display: flex;
+            gap: 12px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .compact-card .main-info .details i {
+            width: 16px;
+            color: #667eea;
+        }
+
+        .compact-card .badge {
+            background: #f0f2f5;
+            padding: 6px 10px;
             border-radius: 20px;
+            font-size: 12px;
+            color: #555;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            overflow-y: auto;
+            padding: 16px;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 24px;
+            width: 100%;
+            max-width: 500px;
+            position: relative;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            font-size: 20px;
+            color: #333;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #999;
+            cursor: pointer;
+            width: auto;
+            padding: 0;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .detail-image-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
             margin: 15px 0;
-            font-family: monospace;
-            font-size: 0.9rem;
-            border: 1px solid #d6e6ff;
         }
 
-        .accounts-block i {
+        .detail-image-grid img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .detail-image-grid img:hover {
+            transform: scale(1.02);
+        }
+
+        /* Simple lightbox */
+        .lightbox {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .lightbox.active {
+            display: flex;
+        }
+
+        .lightbox img {
+            max-width: 90%;
+            max-height: 80%;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: white;
+            font-size: 30px;
+            cursor: pointer;
+            background: rgba(0, 0, 0, 0.5);
+            width: 50px;
+            height: 50px;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lightbox-prev,
+        .lightbox-next {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            color: white;
+            font-size: 40px;
+            cursor: pointer;
+            background: rgba(0, 0, 0, 0.5);
+            width: 60px;
+            height: 60px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lightbox-prev {
+            left: 20px;
+        }
+
+        .lightbox-next {
+            right: 20px;
+        }
+
+        .lightbox-counter {
+            position: absolute;
+            bottom: 20px;
+            color: white;
+            font-size: 16px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 8px 16px;
+            border-radius: 20px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin: 15px 0;
+        }
+
+        .info-item {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 12px;
+        }
+
+        .info-item .label {
+            font-size: 11px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-item .value {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-top: 4px;
+        }
+
+        .info-item.location-value {
+            cursor: pointer;
+            background: #e3f2fd;
+            transition: background 0.2s;
+        }
+
+        .info-item.location-value:hover {
+            background: #bbdefb;
+        }
+
+        .info-item.location-value .value {
             color: #1976d2;
-            margin-right: 6px;
         }
 
-        .payment-item {
-            background: #f9fafc;
-            padding: 15px;
-            border-radius: 18px;
-            margin: 12px 0;
-            border-left: 5px solid #1b7aca;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+        .form-card {
+            background: white;
+            border-radius: 24px;
+            padding: 20px;
+            margin: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
         }
 
-        .payment-item i {
-            color: #1976d2;
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 6px;
+        }
+
+        .form-group label i {
+            color: #667eea;
             width: 20px;
         }
 
-        /* bottom navigation */
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e4e8;
+            border-radius: 12px;
+            font-size: 15px;
+            transition: all 0.2s;
+            background: white;
+        }
+
+        .form-control:focus {
+            border-color: #667eea;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        select.form-control {
+            background: white;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            background-size: 16px;
+            padding-right: 48px;
+        }
+
+        textarea.form-control {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        /* Photo Upload Buttons */
+        .photo-upload-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .photo-upload-btn {
+            position: relative;
+            border: 2px dashed #667eea;
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            background: #f8faff;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .photo-upload-btn:hover {
+            background: #f0f3ff;
+        }
+
+        .photo-upload-btn i {
+            font-size: 24px;
+            color: #667eea;
+            margin-bottom: 4px;
+        }
+
+        .photo-upload-btn span {
+            font-size: 12px;
+            color: #667eea;
+            font-weight: 500;
+        }
+
+        .photo-upload-btn small {
+            font-size: 10px;
+            color: #999;
+            margin-top: 4px;
+        }
+
+        .photo-preview {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .photo-upload-btn.has-image {
+            border: 2px solid #28a745;
+            background: #f0fff4;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .photo-upload-btn.has-image i,
+        .photo-upload-btn.has-image span,
+        .photo-upload-btn.has-image small {
+            display: none;
+        }
+
+        .photo-upload-btn.has-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .remove-photo {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #dc3545;
+            font-size: 14px;
+            cursor: pointer;
+            z-index: 10;
+            border: 1px solid #ddd;
+        }
+
+        .remove-photo:hover {
+            background: white;
+            transform: scale(1.1);
+        }
+
+        .photo-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #e0e0e0;
+        }
+
+        .photo-progress-bar {
+            height: 100%;
+            background: #28a745;
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .pdf-badge {
+            background: #ff4757;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 11px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
         .bottom-nav {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(16px);
+            background: white;
             display: flex;
             justify-content: space-around;
-            padding: 12px 16px 18px 16px;
-            box-shadow: 0 -6px 20px rgba(0, 20, 60, 0.12);
-            border-top: 1px solid rgba(255, 255, 255, 0.5);
-            max-width: 600px;
-            margin: 0 auto;
-            border-radius: 30px 30px 0 0;
+            padding: 12px 16px;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+            border-top-left-radius: 24px;
+            border-top-right-radius: 24px;
+            z-index: 100;
         }
 
         .nav-item {
             display: flex;
             flex-direction: column;
             align-items: center;
-            color: #5c7b9c;
-            transition: 0.2s;
-            cursor: pointer;
-            font-size: 0.8rem;
-            background: transparent;
-            padding: 4px 16px;
-            border-radius: 30px;
             gap: 4px;
+            color: #999;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: none;
+            border: none;
+            width: auto;
+            padding: 0;
         }
 
         .nav-item i {
-            font-size: 1.5rem;
+            font-size: 22px;
         }
 
         .nav-item.active {
-            color: #1976d2;
-            background: #e1f0ff;
-            font-weight: 600;
+            color: #667eea;
         }
 
-        .info-message {
+        .search-bar {
             background: white;
-            border-radius: 40px;
-            padding: 30px;
-            text-align: center;
-            color: #6b85a2;
-            font-weight: 500;
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        /* filter summary */
-        .filter-summary {
-            background: #e8f0fe;
-            border-radius: 20px;
+            margin: 16px;
             padding: 8px 16px;
-            margin-bottom: 16px;
-            font-size: 0.9rem;
-            color: #135b9e;
+            border-radius: 30px;
             display: flex;
             align-items: center;
+            gap: 10px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .search-bar i {
+            color: #999;
+        }
+
+        .search-bar input {
+            border: none;
+            flex: 1;
+            padding: 8px 0;
+            font-size: 15px;
+        }
+
+        .search-bar input:focus {
+            outline: none;
+        }
+
+        .filter-chips {
+            display: flex;
             gap: 8px;
-            flex-wrap: wrap;
+            overflow-x: auto;
+            padding: 0 16px;
+            margin-bottom: 16px;
+            scrollbar-width: none;
         }
 
-        .filter-summary i {
-            color: #1976d2;
+        .filter-chips::-webkit-scrollbar {
+            display: none;
         }
 
-        .filter-tag {
+        .chip {
             background: white;
+            padding: 8px 16px;
             border-radius: 30px;
-            padding: 4px 12px;
-            display: inline-flex;
+            font-size: 13px;
+            white-space: nowrap;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .chip.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .chip i {
+            margin-right: 6px;
+        }
+
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+            border-radius: 8px;
+        }
+
+        @keyframes loading {
+            0% {
+                background-position: 200% 0;
+            }
+
+            100% {
+                background-position: -200% 0;
+            }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .view-toggle {
+            display: flex;
+            justify-content: flex-end;
+            padding: 0 16px;
+            margin-bottom: 8px;
+        }
+
+        .view-btn {
+            background: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 20px;
+            display: flex;
             align-items: center;
-            gap: 6px;
+            justify-content: center;
+            color: #999;
+            cursor: pointer;
+        }
+
+        .view-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .remark-text {
+            background: #fff3e0;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 14px;
+            border-left: 3px solid #ff9800;
+        }
+
+        .remark-text i {
+            color: #ff9800;
+            margin-right: 6px;
+        }
+
+        .photo-upload-note {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .photo-upload-note i {
+            color: #28a745;
+        }
+
+        .upload-area {
+            border: 2px dashed #667eea;
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            background: #f8faff;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .upload-area:hover {
+            background: #f0f3ff;
+        }
+
+        .upload-area i {
+            font-size: 32px;
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+
+        .upload-area p {
+            color: #667eea;
             font-weight: 500;
+        }
+
+        .upload-area small {
+            color: #999;
+            font-size: 12px;
         }
     </style>
 </head>
 
 <body>
 
+    <!-- App Header -->
     <div class="app-header">
-        <h2><i class="fas fa-hand-holding-heart" style="margin-right: 10px;"></i> Sahayata</h2>
-        <div class="sub"><i class="fas fa-map-marker-alt" style="margin-right: 5px;"></i> Beneficiary Directory ·
-            Triprangode Gramapanchayath</div>
+        <h1>
+            <i class="fas fa-clipboard-list"></i>
+            Survey Pro
+        </h1>
+        <p>Smart survey collection & analysis</p>
     </div>
 
-    <!-- main content -->
-    <div class="main-content" id="mainContent">
-        <!-- filter summary (shows active filters) -->
-        <div id="filterSummary" class="filter-summary">
-            <i class="fas fa-filter"></i>
-            <span>Showing: </span>
-            <span id="filterTags">all beneficiaries</span>
+    <!-- Stats Cards -->
+    <div class="stats-container">
+        <div class="stat-card">
+            <i class="fas fa-users"></i>
+            <div class="stat-value" id="totalSurveys">0</div>
+            <div class="stat-label">Total Surveys</div>
         </div>
-
-        <!-- dashboard cards (category stats) - now updates based on filters -->
-        <div id="dashboardView" class="dashboard-row"></div>
-
-        <!-- filter & search bar -->
-        <div id="filterSection" class="filter-bar">
-            <div class="filter-item">
-                <i class="fas fa-tag"></i>
-                <label>Cat</label>
-                <select id="catFilter">
-                    <option value="ALL">All</option>
-                </select>
-            </div>
-            <div class="filter-item">
-                <i class="fas fa-map-pin"></i>
-                <label>Reg</label>
-                <select id="regFilter">
-                    <option value="ALL">All</option>
-                </select>
-            </div>
-            <div class="search-box">
-                <i class="fas fa-search"></i>
-                <input type="text" id="searchInput" placeholder="Name, ID, mobile...">
-            </div>
-            <button class="reset-btn" id="resetFilters"><i class="fas fa-undo-alt"></i> reset</button>
+        <div class="stat-card">
+            <i class="fas fa-check-circle"></i>
+            <div class="stat-value" id="toiletCount">0</div>
+            <div class="stat-label">With Toilet</div>
         </div>
-
-        <!-- list container (cards) - visible by default -->
-        <div id="listView"></div>
-
-        <!-- detail panel (hidden by default) -->
-        <div id="detailView" class="detail-container hidden"></div>
+        <div class="stat-card">
+            <i class="fas fa-graduation-cap"></i>
+            <div class="stat-value" id="year12Count">0</div>
+            <div class="stat-label">12th Pass</div>
+        </div>
     </div>
 
-    <!-- bottom navigation - removed insights, only dashboard and list -->
+    <!-- Search Bar -->
+    <div class="search-bar">
+        <i class="fas fa-search"></i>
+        <input type="text" id="searchInput" placeholder="Search by name, house, ward or place..."
+            onkeyup="filterSurveys()">
+    </div>
+
+    <!-- Filter Chips -->
+    <div class="filter-chips">
+        <div class="chip active" onclick="filterByCategory('all')">
+            <i class="fas fa-globe"></i> All
+        </div>
+        <div class="chip" onclick="filterByCategory('General')">
+            <i class="fas fa-user"></i> General
+        </div>
+        <div class="chip" onclick="filterByCategory('SC')">
+            <i class="fas fa-users"></i> SC
+        </div>
+        <div class="chip" onclick="filterByCategory('ST')">
+            <i class="fas fa-users"></i> ST
+        </div>
+        <div class="chip" onclick="filterByCategory('OBC')">
+            <i class="fas fa-users"></i> OBC
+        </div>
+    </div>
+
+    <!-- View Toggle -->
+    <div class="view-toggle">
+        <button class="view-btn active" onclick="toggleView('compact')" id="compactViewBtn">
+            <i class="fas fa-list"></i>
+        </button>
+        <button class="view-btn" onclick="toggleView('grid')" id="gridViewBtn">
+            <i class="fas fa-th-large"></i>
+        </button>
+    </div>
+
+    <!-- Surveys List (Compact View - No Images) -->
+    <div id="surveysContainer"></div>
+
+    <!-- Form Modal for New Survey -->
+    <div class="modal" id="formModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-plus-circle" style="color: #667eea;"></i> New Survey</h2>
+                <button class="close-btn" onclick="closeForm()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label><i class="fas fa-user"></i> Full Name *</label>
+                    <input class="form-control" id="name" placeholder="Enter full name">
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-home"></i> House Name/Number *</label>
+                    <input class="form-control" id="house" placeholder="Enter house name/number">
+                </div>
+
+                <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="form-group">
+                        <label><i class="fas fa-map-marker-alt"></i> Ward *</label>
+                        <select class="form-control" id="ward">
+                            <option value="" disabled selected>-- Select Ward --</option>
+                            <option value="Ward 1">Ward 1</option>
+                            <option value="Ward 2">Ward 2</option>
+                            <option value="Ward 3">Ward 3</option>
+                            <option value="Ward 4">Ward 4</option>
+                            <option value="Ward 5">Ward 5</option>
+                            <option value="Ward 6">Ward 6</option>
+                            <option value="Ward 7">Ward 7</option>
+                            <option value="Ward 8">Ward 8</option>
+                            <option value="Ward 9">Ward 9</option>
+                            <option value="Ward 10">Ward 10</option>
+                            <option value="Ward 11">Ward 11</option>
+                            <option value="Ward 12">Ward 12</option>
+                            <option value="Ward 13">Ward 13</option>
+                            <option value="Ward 14">Ward 14</option>
+                            <option value="Ward 15">Ward 15</option>
+                            <option value="Ward 18">Ward 18</option>
+                            <option value="Ward 19">Ward 19</option>
+                            <option value="Ward 20">Ward 20</option>
+                            <option value="Ward 21">Ward 21</option>
+                            <option value="Ward 22">Ward 22</option>
+                            <option value="Ward 23">Ward 23</option>
+                            <option value="Ward 24">Ward 24</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fas fa-location-dot"></i> Place *</label>
+                        <input class="form-control" id="place" placeholder="Enter place name">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-tag"></i> Category *</label>
+                    <select class="form-control" id="category">
+                        <option value="" disabled selected>-- Select Category --</option>
+                        <option value="General">General</option>
+                        <option value="SC">SC</option>
+                        <option value="ST">ST</option>
+                        <option value="OBC">OBC</option>
+                    </select>
+                </div>
+
+                <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="form-group">
+                        <label><i class="fas fa-graduation-cap"></i> 12 Year Completed</label>
+                        <select class="form-control" id="year12">
+                            <option value="" disabled selected>-- Select --</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fas fa-toilet"></i> Toilet</label>
+                        <select class="form-control" id="toilet">
+                            <option value="" disabled selected>-- Select --</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-comment"></i> Remarks</label>
+                    <textarea class="form-control" id="remarks"
+                        placeholder="Enter any additional remarks or notes..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-camera"></i> Photos (2 required)</label>
+                    <div class="photo-upload-note">
+                        <i class="fas fa-info-circle"></i> Tap each button to select photos from gallery
+                    </div>
+
+                    <!-- Hidden file inputs for each photo - ONLY 2 -->
+                    <input type="file" id="photo1" accept="image/*" style="display: none;"
+                        onchange="handlePhotoSelect(1, this)">
+                    <input type="file" id="photo2" accept="image/*" style="display: none;"
+                        onchange="handlePhotoSelect(2, this)">
+
+                    <div class="photo-upload-grid">
+                        <div class="photo-upload-btn" id="photoBtn1"
+                            onclick="document.getElementById('photo1').click()">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <span>Photo 1</span>
+                            <small>Tap to select</small>
+                        </div>
+
+                        <div class="photo-upload-btn" id="photoBtn2"
+                            onclick="document.getElementById('photo2').click()">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <span>Photo 2</span>
+                            <small>Tap to select</small>
+                        </div>
+                    </div>
+
+                    <div id="photoStatus" style="margin-top: 10px; font-size: 13px;"></div>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-file-pdf"></i> Upload PDF Document</label>
+                    <input type="file" id="pdfFile" accept=".pdf" style="display: none;"
+                        onchange="handlePDFSelect(this)">
+                    <div class="upload-area" onclick="document.getElementById('pdfFile').click()">
+                        <i class="fas fa-file-pdf"></i>
+                        <p>Tap to upload PDF</p>
+                        <small>Optional: Upload supporting document</small>
+                    </div>
+                    <div id="pdfName" style="margin-top: 8px; font-size: 13px; color: #666;"></div>
+                </div>
+
+                <div id="locationStatus"
+                    style="background: #e8f4fd; padding: 10px; border-radius: 10px; margin: 15px 0; font-size: 13px; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-satellite-dish"></i>
+                    <span>Getting location...</span>
+                </div>
+                <div id="gpsMap" style="
+                        height:220px;
+                        border-radius:14px;
+                        margin-top:10px;
+                        overflow:hidden;
+                        "></div>
+                <button onclick="submitForm()" id="submitBtn"
+                    style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 16px; border-radius: 30px; font-size: 16px; font-weight: 600; cursor: pointer; width: 100%;">
+                    <i class="fas fa-cloud-upload-alt"></i> Submit Survey
+                </button>
+
+                <div id="status" style="margin-top: 10px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detail View Modal -->
+    <div class="modal" id="detailModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-info-circle" style="color: #667eea;"></i> Survey Details</h2>
+                <button class="close-btn" onclick="closeDetail()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body" id="detailContent">
+                <!-- Dynamic content will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Simple Lightbox -->
+    <div class="lightbox" id="lightbox">
+        <span class="lightbox-close" onclick="closeLightbox()">&times;</span>
+        <span class="lightbox-prev" onclick="changeImage(-1)">&#10094;</span>
+        <span class="lightbox-next" onclick="changeImage(1)">&#10095;</span>
+        <img id="lightbox-img" src="">
+        <div class="lightbox-counter" id="lightbox-counter"></div>
+    </div>
+
+    <!-- Bottom Navigation -->
     <div class="bottom-nav">
-        <div class="nav-item" id="navDashboard" data-tab="dashboard"><i
-                class="fas fa-chart-pie"></i><span>Dashboard</span></div>
-        <div class="nav-item active" id="navList" data-tab="list"><i
-                class="fas fa-list-ul"></i><span>Beneficiaries</span></div>
+        <button class="nav-item active" onclick="showHome(event)">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </button>
+        <button class="nav-item" onclick="showFilter(event)">
+            <i class="fas fa-filter"></i>
+            <span>Filter</span>
+        </button>
+        <button class="nav-item" onclick="showSearch(event)">
+            <i class="fas fa-search"></i>
+            <span>Search</span>
+        </button>
+        <button class="nav-item" onclick="openForm()">
+            <i class="fas fa-plus-circle"></i>
+            <span>Add New</span>
+        </button>
     </div>
 
     <script>
-        (function () {
-            const API_URL = "https://script.google.com/macros/s/AKfycbx3fCb2J4j3V3Vw4DXWVLudHA9uqxdNq-s6Zt1bgptKlJZPbJfiH77MVbAJqUhYmBwHDA/exec?api=1";
+        // Global variables
+        let lat = "", lng = "";
+        let locationObtained = false;
+        let allSurveys = [];
+        let currentFilter = 'all';
+        let currentView = 'compact';
+        let searchTerm = '';
 
-            let DATA = [];               // raw data
-            let filteredData = [];        // after filter+search
+        // Photo storage - ONLY 2 PHOTOS
+        let photoFiles = {
+            1: null,
+            2: null
+        };
 
-            // DOM elements
-            const dashboardDiv = document.getElementById('dashboardView');
-            const listViewDiv = document.getElementById('listView');
-            const detailViewDiv = document.getElementById('detailView');
-            const filterSection = document.getElementById('filterSection');
-            const filterSummary = document.getElementById('filterSummary');
-            const filterTags = document.getElementById('filterTags');
-            const catSelect = document.getElementById('catFilter');
-            const regSelect = document.getElementById('regFilter');
-            const searchInput = document.getElementById('searchInput');
-            const resetBtn = document.getElementById('resetFilters');
+        // Lightbox variables
+        let lightboxImages = [];
+        let currentImageIndex = 0;
 
-            // navigation
-            const navDashboard = document.getElementById('navDashboard');
-            const navList = document.getElementById('navList');
-            let activeTab = 'list';   // default to beneficiaries tab
+        // GPS tracking variables
+        let watchId = null;
+        let bestAccuracy = 9999;
 
-            // Helper function to safely convert any value to string for searching
-            function safeToString(value) {
-                if (value === null || value === undefined) return '';
-                return String(value).toLowerCase();
+        // ⭐ FIXED: Clear location function
+        function clearLocation() {
+            // Stop any ongoing GPS tracking
+            if (watchId !== null) {
+                navigator.geolocation.clearWatch(watchId);
+                watchId = null;
             }
 
-            // Update filter summary display
-            function updateFilterSummary() {
-                const cat = catSelect.value;
-                const reg = regSelect.value;
-                const query = searchInput.value.trim();
+            // Reset location variables
+            lat = "";
+            lng = "";
+            bestAccuracy = 9999;
+            locationObtained = false;
 
-                let tags = [];
-                if (cat !== 'ALL') tags.push(`<span class="filter-tag"><i class="fas fa-tag"></i> ${cat}</span>`);
-                if (reg !== 'ALL') tags.push(`<span class="filter-tag"><i class="fas fa-map-pin"></i> ${reg}</span>`);
-                if (query) tags.push(`<span class="filter-tag"><i class="fas fa-search"></i> "${query}"</span>`);
-
-                if (tags.length === 0) {
-                    filterTags.innerHTML = 'all beneficiaries';
-                } else {
-                    filterTags.innerHTML = tags.join(' ');
-                }
+            // Clear map if it exists
+            if (map) {
+                map.remove();
+                map = null;
+                marker = null;
+                accuracyCircle = null;
             }
 
-            // ---- load ----
-            async function loadData() {
-                try {
-                    const res = await fetch(API_URL);
-                    DATA = await res.json();
-                    // ensure payments array (handle if missing)
-                    DATA = DATA.map((b, idx) => {
-                        if (!b.Payments) b.Payments = [];
-                        if (!b.Accounts) b.Accounts = ['(no account)'];
-                        if (!b.Category) b.Category = 'General';
-                        if (!b.Reg) b.Reg = 'REG00';
-                        // compute total amount from Payments if not present
-                        if (!b.TotalAmount && b.Payments.length) {
-                            b.TotalAmount = b.Payments.reduce((acc, p) => acc + (p.Amount || 0), 0);
-                        } else if (!b.TotalAmount) b.TotalAmount = 0;
-                        b.PaymentCount = b.Payments.length;
-                        return b;
-                    });
-                    populateFilters();
-                    applyFilterAndRender();
-                } catch (e) {
-                    console.warn("Error loading data, using demo data:", e);
-                    // fallback demo data
-                    DATA = generateDemoData();
-                    populateFilters();
-                    applyFilterAndRender();
-                }
-            }
-
-            // demo data if api fails
-            function generateDemoData() {
-                const cats = ['SC', 'ST', 'OBC', 'General', 'Minority'];
-                const regs = ['REG001', 'REG002', 'REG003', 'REG004'];
-                let arr = [];
-                for (let i = 1; i <= 24; i++) {
-                    let cat = cats[Math.floor(Math.random() * cats.length)];
-                    let reg = regs[Math.floor(Math.random() * regs.length)];
-                    arr.push({
-                        Reg: reg,
-                        Sl: i,
-                        RCNO: `RC${1000 + i}`,
-                        BeneID: `BEN${3000 + i}`,
-                        BeneName: `Person ${i}`,
-                        BeneListName: `अधिकारी ${i}`,
-                        MobileNo: `987654${1000 + i}`,
-                        Address: `Ward ${i}, Main Road`,
-                        Category: cat,
-                        TotalAmount: Math.floor(Math.random() * 50000) + 5000,
-                        Accounts: [`SBIN00${i}`, `PYTM${i}`],
-                        PaymentCount: Math.floor(Math.random() * 5),
-                        Payments: Array.from({ length: Math.floor(Math.random() * 4) }, (_, idx) => ({
-                            Date: `2025-0${idx + 1}-10`,
-                            Amount: Math.floor(Math.random() * 8000) + 500,
-                            RequisitionID: `REQ${idx}${i}`,
-                            Fund: 'State Plan'
-                        }))
-                    });
-                }
-                return arr;
-            }
-
-            // fill filter dropdowns dynamically
-            function populateFilters() {
-                const cats = [...new Set(DATA.map(d => d.Category).filter(Boolean))];
-                const regs = [...new Set(DATA.map(d => d.Reg).filter(Boolean))];
-                catSelect.innerHTML = '<option value="ALL">All Categories</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join('');
-                regSelect.innerHTML = '<option value="ALL">All Regions</option>' + regs.map(r => `<option value="${r}">${r}</option>`).join('');
-            }
-
-            // filter logic
-            function filterData() {
-                const cat = catSelect.value;
-                const reg = regSelect.value;
-                const query = searchInput.value.trim().toLowerCase();
-
-                filteredData = DATA.filter(item => {
-                    // Category filter
-                    if (cat !== 'ALL' && item.Category !== cat) return false;
-
-                    // Region filter
-                    if (reg !== 'ALL' && item.Reg !== reg) return false;
-
-                    // Search query - safely convert all fields to strings
-                    if (query) {
-                        const searchableFields = [
-                            safeToString(item.BeneName),
-                            safeToString(item.BeneListName),
-                            safeToString(item.BeneID),
-                            safeToString(item.MobileNo),
-                            safeToString(item.RCNO),
-                            safeToString(item.Address)
-                        ];
-
-                        // Check if query appears in any field
-                        return searchableFields.some(field => field.includes(query));
-                    }
-
-                    return true;
-                });
-
-                updateFilterSummary();
-            }
-
-            // update dashboard stats based on FILTERED data (not all data)
-            function renderDashboard() {
-                const categoryMap = new Map();
-
-                // Use filteredData for dashboard stats
-                const dataForDashboard = filteredData.length > 0 ? filteredData : DATA;
-
-                dataForDashboard.forEach(item => {
-                    const cat = item.Category || 'Uncategorized';
-                    if (!categoryMap.has(cat)) categoryMap.set(cat, { count: 0, total: 0 });
-                    const rec = categoryMap.get(cat);
-                    rec.count += 1;
-                    rec.total += (item.TotalAmount || 0);
-                });
-
-                let html = '';
-                if (categoryMap.size === 0) {
-                    html = '<div class="info-message"><i class="fas fa-chart-line"></i> No data for selected filters</div>';
-                } else {
-                    for (let [cat, val] of categoryMap.entries()) {
-                        html += `<div class="stat-card">
-                            <div class="cat-name"><i class="fas fa-layer-group" style="margin-right: 4px;"></i>${cat}</div>
-                            <div class="cat-count">${val.count}</div>
-                            <div class="cat-total"><i class="fas fa-rupee-sign"></i> ${val.total.toLocaleString()}</div>
-                        </div>`;
-                    }
-                }
-                dashboardDiv.innerHTML = html;
-            }
-
-            // render list cards (filteredData)
-            function renderList() {
-                if (filteredData.length === 0) {
-                    listViewDiv.innerHTML = '<div class="info-message"><i class="fas fa-users-slash"></i> ✨ No matching beneficiaries</div>';
-                    return;
-                }
-
-                let cardsHtml = '';
-                filteredData.forEach((b, idx) => {
-                    // Find original index for showDetail
-                    const originalIndex = DATA.findIndex(item =>
-                        item.BeneID === b.BeneID && item.Sl === b.Sl
-                    );
-
-                    cardsHtml += `
-                        <div class="bene-card" onclick="window.app.showDetail(${originalIndex >= 0 ? originalIndex : 0})">
-                            <div class="row">
-                                <span class="reg-badge"><i class="fas fa-hashtag"></i> ${b.Reg || 'REG'}</span>
-                                <span class="category-tag"><i class="fas fa-tag"></i> ${b.Category || '—'}</span>
-                            </div>
-                            <div class="name-large">
-                                <i class="fas fa-user-circle"></i> ${b.BeneName || 'Unknown'}
-                            </div>
-                            <div class="list-name">${b.BeneListName || ''}</div>
-                            <div class="list-name">${b.Address || ''}</div>
-                            <div class="meta-line">
-                                <span><i class="fas fa-id-card"></i> ${b.BeneID || ''}</span>
-                                <span><i class="fas fa-mobile-alt"></i> ${b.MobileNo || ''}</span>
-                                <span><i class="fas fa-file-invoice"></i> RC:${b.RCNO || ''}</span>
-                            </div>
-                            <div class="row" style="margin-top: 10px;">
-                                <span class="total-amount"><i class="fas fa-rupee-sign"></i> ${(b.TotalAmount || 0).toLocaleString()}</span>
-                                <span><i class="fas fa-credit-card"></i> ${b.PaymentCount || 0} payments</span>
-                            </div>
-                        </div>`;
-                });
-                listViewDiv.innerHTML = cardsHtml;
-            }
-
-            // main render after filtering
-            function applyFilterAndRender() {
-                filterData();
-                renderDashboard();      // dashboard always shows stats for filtered data
-
-                if (activeTab === 'dashboard') {
-                    listViewDiv.style.display = 'none';
-                    dashboardDiv.style.display = 'flex';
-                } else {
-                    listViewDiv.style.display = 'block';
-                    dashboardDiv.style.display = 'none';
-                    renderList();
-                }
-
-                // hide detail if open
-                if (!detailViewDiv.classList.contains('hidden')) {
-                    detailViewDiv.classList.add('hidden');
-                    filterSection.style.display = 'flex';
-                    filterSummary.style.display = 'flex';
-                }
-            }
-
-            // show detail by original index
-            function showDetail(originalIndex) {
-                if (originalIndex < 0 || originalIndex >= DATA.length) return;
-                const b = DATA[originalIndex];
-
-                // hide list / dashboard, show detail
-                listViewDiv.style.display = 'none';
-                dashboardDiv.style.display = 'none';
-                filterSection.style.display = 'none';
-                filterSummary.style.display = 'none';
-                detailViewDiv.classList.remove('hidden');
-
-                let paymentsHtml = '';
-                if (b.Payments && b.Payments.length) {
-                    b.Payments.forEach(p => {
-                        paymentsHtml += `<div class="payment-item">
-                            <i class="fas fa-calendar-alt"></i> 📅 ${p.Date || 'N/A'} · <i class="fas fa-rupee-sign"></i> ${(p.Amount || 0).toLocaleString()}<br>
-                            <i class="fas fa-hashtag"></i> 🔖 ReqID: ${p.RequisitionID || '—'}<br>
-                            <i class="fas fa-coins"></i> 💵 Fund: ${p.Fund || '—'}
-                        </div>`;
-                    });
-                } else {
-                    paymentsHtml = '<div class="payment-item"><i class="fas fa-info-circle"></i> No payment records</div>';
-                }
-
-                const accountsHtml = Array.isArray(b.Accounts) ? b.Accounts.join('<br>') : (b.Accounts || '—');
-
-                detailViewDiv.innerHTML = `
-                    <button class="backBtn" id="manualBackBtn"><i class="fas fa-arrow-left"></i> Back to list</button>
-                    <div style="background:#ebf3fe; border-radius:28px; padding:20px;">
-                        <h2 style="margin:0 0 6px; color:#12437c;"><i class="fas fa-user-circle"></i> ${b.BeneName}</h2>
-                        <div style="color:#2c5779;"><i class="fas fa-font"></i> ${b.BeneListName || ''}</div>
-                        <div class="accounts-block">
-                            <strong><i class="fas fa-university"></i> Accounts</strong><br>${accountsHtml}
-                        </div>
-                        <div style="display:flex; gap:16px; flex-wrap:wrap; margin:12px 0;">
-                            <span><strong><i class="fas fa-credit-card"></i> Payments:</strong> ${b.PaymentCount || 0}</span>
-                            <span><strong><i class="fas fa-rupee-sign"></i> Total:</strong> ₹${(b.TotalAmount || 0).toLocaleString()}</span>
-                        </div>
-                        <h4 style="margin:12px 0 4px;"><i class="fas fa-history"></i> Payment history</h4>
-                        ${paymentsHtml}
-                    </div>
+            // Update location status
+            const statusEl = document.getElementById("locationStatus");
+            if (statusEl) {
+                statusEl.innerHTML = `
+                    <i class="fas fa-satellite-dish"></i>
+                    <span>Getting fresh location...</span>
                 `;
+            }
+        }
 
-                document.getElementById('manualBackBtn').addEventListener('click', goBack);
+        // ⭐ FIXED: Start fresh location tracking
+        function startProLocation() {
+            const statusEl = document.getElementById("locationStatus");
+
+            if (statusEl) {
+                statusEl.innerHTML =
+                    `<i class="fas fa-satellite-dish"></i>
+       Getting precise GPS location...`;
             }
 
-            function goBack() {
-                detailViewDiv.classList.add('hidden');
-                filterSection.style.display = 'flex';
-                filterSummary.style.display = 'flex';
-                // restore based on active tab
-                if (activeTab === 'list') {
-                    listViewDiv.style.display = 'block';
-                    dashboardDiv.style.display = 'none';
+            // Clear any existing watch
+            if (watchId !== null) {
+                navigator.geolocation.clearWatch(watchId);
+            }
+
+            watchId = navigator.geolocation.watchPosition(
+
+                pos => {
+
+                    let acc = pos.coords.accuracy;
+                    let newLat = pos.coords.latitude;
+                    let newLng = pos.coords.longitude;
+
+                    // Keep the BEST accuracy only
+                    if (acc < bestAccuracy) {
+
+                        bestAccuracy = acc;
+                        lat = newLat;
+                        lng = newLng;
+
+                        // Initialize map if needed
+                        if (!map) {
+                            initMap();
+                        }
+
+                        updateMap(newLat, newLng, acc);
+
+                        if (statusEl) {
+
+                            if (acc <= 20) {
+                                statusEl.innerHTML =
+                                    `<i class="fas fa-check-circle" style="color:#28a745;"></i>
+               GPS Locked (${Math.round(acc)}m accuracy)`;
+
+                                locationObtained = true;
+
+                                // Stop watching once accuracy is good
+                                if (watchId !== null) {
+                                    navigator.geolocation.clearWatch(watchId);
+                                    watchId = null;
+                                }
+
+                            } else {
+
+                                statusEl.innerHTML =
+                                    `<i class="fas fa-location-arrow"></i>
+               Improving accuracy... ${Math.round(acc)}m`;
+
+                            }
+                        }
+                    }
+                },
+
+                err => {
+                    if (statusEl) {
+                        statusEl.innerHTML =
+                            `<i class="fas fa-exclamation-triangle" style="color:#dc3545;"></i>
+           GPS error — enable High Accuracy`;
+                    }
+                },
+
+                {
+                    enableHighAccuracy: true,
+                    timeout: 30000,
+                    maximumAge: 0  // ⭐ CRITICAL: Force fresh GPS each time
+                }
+            );
+        }
+
+        // Map variables
+        let map;
+        let marker;
+        let accuracyCircle;
+
+        function initMap() {
+            // Create map only if it doesn't exist
+            if (!map) {
+                map = L.map('gpsMap').setView([10.0, 76.3], 15);
+
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: ''
+                }).addTo(map);
+            }
+        }
+
+        function updateMap(lat, lng, accuracy) {
+            if (!map) {
+                initMap();
+            }
+
+            if (!marker) {
+                marker = L.marker([lat, lng]).addTo(map);
+                accuracyCircle = L.circle([lat, lng], {
+                    radius: accuracy,
+                    color: '#667eea',
+                    fillColor: '#667eea',
+                    fillOpacity: 0.15
+                }).addTo(map);
+            } else {
+                marker.setLatLng([lat, lng]);
+                accuracyCircle.setLatLng([lat, lng]);
+                accuracyCircle.setRadius(accuracy);
+            }
+
+            map.setView([lat, lng], 18);
+        }
+
+        // Handle photo selection
+        function handlePhotoSelect(photoNum, input) {
+            if (input.files && input.files[0]) {
+                let file = input.files[0];
+                photoFiles[photoNum] = file;
+
+                // Show preview
+                let reader = new FileReader();
+                reader.onload = function (e) {
+                    let btn = document.getElementById(`photoBtn${photoNum}`);
+                    if (btn) {
+                        btn.innerHTML = `<img src="${e.target.result}" class="photo-preview"><div class="remove-photo" onclick="removePhoto(${photoNum}, event)"><i class="fas fa-times"></i></div>`;
+                        btn.classList.add('has-image');
+                    }
+                };
+                reader.readAsDataURL(file);
+
+                updatePhotoStatus();
+            }
+        }
+
+        // Remove photo
+        function removePhoto(photoNum, event) {
+            event.stopPropagation();
+
+            // Clear the file input
+            let input = document.getElementById(`photo${photoNum}`);
+            if (input) input.value = '';
+            photoFiles[photoNum] = null;
+
+            // Reset the button
+            let btn = document.getElementById(`photoBtn${photoNum}`);
+            if (btn) {
+                btn.innerHTML = `
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <span>Photo ${photoNum}</span>
+                    <small>Tap to select</small>
+                `;
+                btn.classList.remove('has-image');
+            }
+
+            updatePhotoStatus();
+        }
+
+        // Update photo status message - UPDATED FOR 2 PHOTOS
+        function updatePhotoStatus() {
+            let selectedCount = Object.values(photoFiles).filter(f => f !== null).length;
+            let statusDiv = document.getElementById('photoStatus');
+
+            if (statusDiv) {
+                if (selectedCount === 0) {
+                    statusDiv.innerHTML = '<span style="color: #dc3545;"><i class="fas fa-exclamation-circle"></i> No photos selected. Please select 2 photos.</span>';
+                } else if (selectedCount < 2) {
+                    statusDiv.innerHTML = `<span style="color: #ff9800;"><i class="fas fa-exclamation-triangle"></i> ${selectedCount}/2 photos selected. Need ${2 - selectedCount} more.</span>`;
                 } else {
-                    listViewDiv.style.display = 'none';
-                    dashboardDiv.style.display = 'flex';
+                    statusDiv.innerHTML = '<span style="color: #28a745;"><i class="fas fa-check-circle"></i> All 2 photos selected!</span>';
                 }
             }
+        }
 
-            // navigation handlers
-            function setActiveTab(tab) {
-                activeTab = tab;
-                navDashboard.classList.remove('active');
-                navList.classList.remove('active');
+        // Handle PDF selection
+        function handlePDFSelect(input) {
+            if (input.files && input.files[0]) {
+                let file = input.files[0];
+                let pdfNameEl = document.getElementById("pdfName");
+                if (pdfNameEl) {
+                    pdfNameEl.innerHTML =
+                        `<i class="fas fa-check-circle" style="color: #28a745;"></i> Selected: ${file.name}`;
+                }
+            }
+        }
 
-                if (tab === 'dashboard') {
-                    navDashboard.classList.add('active');
-                    dashboardDiv.style.display = 'flex';
-                    listViewDiv.style.display = 'none';
+        // Lightbox functions
+        function openLightbox(images, index) {
+            lightboxImages = images;
+            currentImageIndex = index;
+            let lightbox = document.getElementById('lightbox');
+            let img = document.getElementById('lightbox-img');
+            let counter = document.getElementById('lightbox-counter');
+
+            if (lightbox && img && counter) {
+                img.src = images[index];
+                counter.textContent = `${index + 1} of ${images.length}`;
+                lightbox.classList.add('active');
+            }
+        }
+
+        function closeLightbox() {
+            let lightbox = document.getElementById('lightbox');
+            if (lightbox) {
+                lightbox.classList.remove('active');
+            }
+        }
+
+        function changeImage(direction) {
+            currentImageIndex += direction;
+            if (currentImageIndex < 0) {
+                currentImageIndex = lightboxImages.length - 1;
+            } else if (currentImageIndex >= lightboxImages.length) {
+                currentImageIndex = 0;
+            }
+
+            let img = document.getElementById('lightbox-img');
+            let counter = document.getElementById('lightbox-counter');
+
+            if (img && counter) {
+                img.src = lightboxImages[currentImageIndex];
+                counter.textContent = `${currentImageIndex + 1} of ${lightboxImages.length}`;
+            }
+        }
+
+        // Upload image to Cloudinary
+        async function uploadImage(file) {
+            let fd = new FormData();
+            fd.append("file", file);
+            fd.append("upload_preset", "survey_app");
+
+            try {
+                let r = await fetch(
+                    "https://api.cloudinary.com/v1_1/dpeuqcbtm/image/upload",
+                    { method: "POST", body: fd }
+                );
+                let j = await r.json();
+                return j.secure_url;
+            } catch (error) {
+                console.error("Upload error:", error);
+                throw error;
+            }
+        }
+
+        // Upload PDF to Cloudinary
+        async function uploadPDF(file) {
+            let fd = new FormData();
+            fd.append("file", file);
+            fd.append("upload_preset", "survey_app");
+            fd.append("resource_type", "raw");
+
+            try {
+                let r = await fetch(
+                    "https://api.cloudinary.com/v1_1/dpeuqcbtm/raw/upload",
+                    { method: "POST", body: fd }
+                );
+                let j = await r.json();
+                return j.secure_url;
+            } catch (error) {
+                console.error("PDF upload error:", error);
+                throw error;
+            }
+        }
+
+        // ⭐ FIXED: Submit form with location clearing
+        async function submitForm() {
+            let name = document.getElementById("name")?.value.trim() || "";
+            let house = document.getElementById("house")?.value.trim() || "";
+            let ward = document.getElementById("ward")?.value || "";
+            let place = document.getElementById("place")?.value.trim() || "";
+            let category = document.getElementById("category")?.value || "";
+            let year12 = document.getElementById("year12")?.value || "";
+            let toilet = document.getElementById("toilet")?.value || "";
+            let remarks = document.getElementById("remarks")?.value.trim() || "";
+            let pdfFile = document.getElementById("pdfFile")?.files[0];
+
+            // Validation
+            if (!name || !house || !place) {
+                alert("Please fill in all required fields");
+                return;
+            }
+
+            if (!ward || !category || !year12 || !toilet) {
+                alert("Please select all dropdown options");
+                return;
+            }
+
+            // Check if all 2 photos are selected
+            let selectedPhotos = Object.values(photoFiles).filter(f => f !== null);
+            if (selectedPhotos.length !== 2) {
+                alert("Please select all 2 photos");
+                return;
+            }
+
+            if (!locationObtained) {
+                alert("Waiting for location... Please try again");
+                return;
+            }
+
+            let submitBtn = document.getElementById("submitBtn");
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Uploading...';
+            }
+
+            try {
+                let statusEl = document.getElementById("status");
+                if (statusEl) {
+                    statusEl.innerHTML = '<div style="background: #e7f3ff; color: #004085; padding: 10px; border-radius: 8px;">📸 Uploading photos...</div>';
+                }
+
+                // Upload photos - ONLY 2
+                let photoUrls = [];
+                for (let i = 1; i <= 2; i++) {
+                    if (photoFiles[i]) {
+                        let url = await uploadImage(photoFiles[i]);
+                        photoUrls.push(url);
+                    }
+                }
+
+                let pdfUrl = "";
+                if (pdfFile) {
+                    if (statusEl) {
+                        statusEl.innerHTML = '<div style="background: #e7f3ff; color: #004085; padding: 10px; border-radius: 8px;">📄 Uploading PDF...</div>';
+                    }
+                    pdfUrl = await uploadPDF(pdfFile);
+                }
+
+                if (statusEl) {
+                    statusEl.innerHTML = '<div style="background: #e7f3ff; color: #004085; padding: 10px; border-radius: 8px;">💾 Saving data...</div>';
+                }
+
+                let data = {
+                    name: name,
+                    house: house,
+                    ward: ward,
+                    place: place,
+                    category: category,
+                    year12: year12,
+                    toilet: toilet,
+                    remarks: remarks,
+                    lat: lat,
+                    lng: lng,
+                    img1: photoUrls[0] || "",
+                    img2: photoUrls[1] || "",
+                    pdf: pdfUrl
+                };
+
+                await fetch("https://script.google.com/macros/s/AKfycbylGOvViAw9t79ypVp7Qlbn4cd55wZA95BNQsFrvBLNnRxeTJRcycBqeVcSSCpNXvrehQ/exec",
+                    { method: "POST", body: JSON.stringify(data) }
+                );
+
+                if (statusEl) {
+                    statusEl.innerHTML = '<div style="background: #d4edda; color: #155724; padding: 10px; border-radius: 8px;">✅ Survey submitted successfully!</div>';
+                }
+
+                // ⭐ FIXED: Clear location after successful submission
+                clearLocation();
+
+                setTimeout(() => {
+                    closeForm();
+                    loadList();
+                }, 1000);
+
+            } catch (error) {
+                console.error(error);
+                let statusEl = document.getElementById("status");
+                if (statusEl) {
+                    statusEl.innerHTML = '<div style="background: #f8d7da; color: #721c24; padding: 10px; border-radius: 8px;">❌ Error submitting survey</div>';
+                }
+            } finally {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Submit Survey';
+                }
+            }
+        }
+
+        // Load all surveys
+        async function loadList() {
+            let container = document.getElementById("surveysContainer");
+            if (!container) return;
+
+            container.innerHTML = '<div style="padding: 20px;"><div class="skeleton" style="height: 80px; margin-bottom: 10px;"></div><div class="skeleton" style="height: 80px;"></div></div>';
+
+            try {
+                let res = await fetch("https://script.google.com/macros/s/AKfycbylGOvViAw9t79ypVp7Qlbn4cd55wZA95BNQsFrvBLNnRxeTJRcycBqeVcSSCpNXvrehQ/exec");
+                let json = await res.json();
+
+                allSurveys = json;
+                updateStats();
+                displaySurveys();
+
+            } catch (error) {
+                console.error(error);
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>Error loading data</p></div>';
+            }
+        }
+
+        // Display surveys based on filters and view
+        function displaySurveys() {
+
+            const container = document.getElementById("surveysContainer");
+            if (!container) return;
+
+            let filtered = [...allSurveys]; // clone array safely
+
+            // CATEGORY FILTER
+            if (currentFilter !== 'all') {
+                filtered = filtered.filter(s => String(s.category ?? '') === currentFilter);
+            }
+
+            // SEARCH FILTER
+            if (searchTerm) {
+                const term = searchTerm.toLowerCase();
+
+                filtered = filtered.filter(s =>
+                    String(s.name ?? '').toLowerCase().includes(term) ||
+                    String(s.house ?? '').toLowerCase().includes(term) ||
+                    String(s.ward ?? '').toLowerCase().includes(term) ||
+                    String(s.place ?? '').toLowerCase().includes(term)
+                );
+            }
+
+            // EMPTY STATE
+            if (filtered.length === 0) {
+                container.innerHTML =
+                    '<div class="empty-state"><i class="fas fa-folder-open"></i><p>No surveys found</p></div>';
+                return;
+            }
+
+            container.innerHTML = '';
+
+            // ⭐ REVERSE WITHOUT BREAKING ORIGINAL ARRAY
+            filtered = filtered.slice().reverse();
+
+            const fragment = document.createDocumentFragment();
+
+            filtered.forEach(s => {
+
+                // ⭐ SAFE VALUES (NO replace(), NO escape issues)
+                const name = String(s.name ?? 'N/A');
+                const house = String(s.house ?? '');
+                const ward = String(s.ward ?? '');
+                const place = String(s.place ?? '');
+                const category = String(s.category ?? 'General');
+                const year12 = String(s.year12 ?? '');
+                const toilet = String(s.toilet ?? '');
+                const remarks = String(s.remarks ?? '');
+
+                const img1 = String(s.img1 ?? '');
+                const img2 = String(s.img2 ?? '');
+                const pdf = String(s.pdf ?? '');
+                const lat = String(s.lat ?? '');
+                const lng = String(s.lng ?? '');
+
+                // ⭐ CREATE CARD
+                const card = document.createElement("div");
+
+                if (currentView === 'compact') {
+
+                    card.className = "compact-card";
+
+                    card.innerHTML = `
+                <div class="main-info">
+                    <h3>
+                        <i class="fas fa-user" style="color:#667eea;margin-right:6px;"></i>
+                        ${name}
+                    </h3>
+                    <div class="details">
+                        <span><i class="fas fa-home"></i> ${house}</span>
+                        <span><i class="fas fa-map-marker-alt"></i> ${ward}</span>
+                        <span><i class="fas fa-location-dot"></i> ${place}</span>
+                    </div>
+                </div>
+                <div class="badge">
+                    <i class="fas fa-tag"></i> ${category}
+                </div>
+            `;
+
                 } else {
-                    navList.classList.add('active');
-                    dashboardDiv.style.display = 'none';
-                    listViewDiv.style.display = 'block';
-                    renderList();
+
+                    card.style.cssText =
+                        "background:white;border-radius:16px;padding:12px;margin:8px;box-shadow:0 2px 8px rgba(0,0,0,0.05);cursor:pointer;";
+
+                    card.innerHTML = `
+                <h4 style="margin:0 0 8px 0;">${name}</h4>
+                <div style="display:flex;flex-wrap:wrap;gap:8px;font-size:12px;color:#666;">
+                    <span><i class="fas fa-home"></i> ${house}</span>
+                    <span><i class="fas fa-tag"></i> ${category}</span>
+                </div>
+            `;
                 }
 
-                // if detail is open, hide it on tab switch
-                if (!detailViewDiv.classList.contains('hidden')) {
-                    detailViewDiv.classList.add('hidden');
-                    filterSection.style.display = 'flex';
-                    filterSummary.style.display = 'flex';
-                }
-            }
+                // ⭐ SAFE CLICK HANDLER (NO INLINE STRING JSON)
+                card.addEventListener("click", () => {
+                    showDetails(
+                        name,
+                        house,
+                        ward,
+                        place,
+                        category,
+                        year12,
+                        toilet,
+                        remarks,
+                        img1,
+                        img2,
+                        pdf,
+                        lat,
+                        lng
+                    );
+                });
 
-            // expose functions globally for onclick
-            window.app = {
-                showDetail: (idx) => showDetail(idx),
-                goBack: goBack
-            };
-
-            // reset filters
-            resetBtn.addEventListener('click', () => {
-                catSelect.value = 'ALL';
-                regSelect.value = 'ALL';
-                searchInput.value = '';
-                applyFilterAndRender();
-                if (activeTab === 'list') renderList();
+                fragment.appendChild(card);
             });
 
-            // filter change events - update both dashboard and list
-            catSelect.addEventListener('change', applyFilterAndRender);
-            regSelect.addEventListener('change', applyFilterAndRender);
-            searchInput.addEventListener('input', applyFilterAndRender);
+            // ⭐ GRID VIEW WRAPPER
+            if (currentView === 'grid') {
 
-            // bottom nav
-            navDashboard.addEventListener('click', () => setActiveTab('dashboard'));
-            navList.addEventListener('click', () => setActiveTab('list'));
+                const grid = document.createElement("div");
+                grid.style.cssText =
+                    "display:grid;grid-template-columns:repeat(2,1fr);gap:8px;padding:8px;";
+                grid.appendChild(fragment);
+                container.appendChild(grid);
 
-            // initial load - beneficiaries first (activeTab = 'list')
-            loadData();
+            } else {
+                container.appendChild(fragment);
+            }
+        }
 
-            // helper to goBack from global
-            window.goBack = function () { window.app.goBack(); };
+        // Show details in modal - UPDATED FOR 2 PHOTOS
+        function showDetails(name, house, ward, place, category, year12, toilet, remarks, img1, img2, pdf, lat, lng) {
+            // Prepare image array for gallery - ONLY 2
+            const images = [img1, img2].filter(img => img && img !== 'null' && img !== 'undefined' && img !== '');
 
-        })();
+            let imageGrid = '';
+            if (images.length > 0) {
+                imageGrid = '<div class="detail-image-grid">';
+                images.forEach((img, index) => {
+                    imageGrid += `<img src="${img}" onclick='openLightbox(${JSON.stringify(images)}, ${index})' style="cursor: pointer;">`;
+                });
+                imageGrid += '</div>';
+            }
+
+            let locationHtml = '';
+            if (lat && lng && lat !== 'null' && lng !== 'null' && lat !== '' && lng !== '') {
+                locationHtml = `
+                    <div class="info-item location-value" onclick="window.open('https://www.google.com/maps?q=${lat},${lng}', '_blank')">
+                        <div class="label"><i class="fas fa-map-pin"></i> Location</div>
+                        <div class="value">${parseFloat(lat).toFixed(6)}, ${parseFloat(lng).toFixed(6)}</div>
+                        <small style="color: #1976d2;"><i class="fas fa-external-link-alt"></i> Click to open in Maps</small>
+                    </div>
+                `;
+            } else {
+                locationHtml = `
+                    <div class="info-item">
+                        <div class="label"><i class="fas fa-map-pin"></i> Location</div>
+                        <div class="value">Not available</div>
+                    </div>
+                `;
+            }
+
+            let remarksHtml = '';
+            if (remarks && remarks !== 'null' && remarks !== 'undefined' && remarks.trim() !== '') {
+                remarksHtml = `
+                    <div class="remark-text">
+                        <i class="fas fa-comment"></i> <strong>Remarks:</strong> ${remarks}
+                    </div>
+                `;
+            }
+
+            let pdfHtml = '';
+            if (pdf && pdf !== 'null' && pdf !== 'undefined' && pdf !== '') {
+                pdfHtml = `
+                    <div style="margin-top: 15px; text-align: center;">
+                        <a href="${pdf}" target="_blank" style="display: inline-block; background: #ff4757; color: white; padding: 12px 24px; border-radius: 30px; text-decoration: none;">
+                            <i class="fas fa-file-pdf"></i> View PDF Document
+                        </a>
+                    </div>
+                `;
+            }
+
+            let html = `
+                ${imageGrid}
+
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="label"><i class="fas fa-user"></i> Name</div>
+                        <div class="value">${name || 'N/A'}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="label"><i class="fas fa-home"></i> House</div>
+                        <div class="value">${house || 'N/A'}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="label"><i class="fas fa-map-marker-alt"></i> Ward</div>
+                        <div class="value">${ward || 'N/A'}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="label"><i class="fas fa-location-dot"></i> Place</div>
+                        <div class="value">${place || 'N/A'}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="label"><i class="fas fa-tag"></i> Category</div>
+                        <div class="value">${category || 'N/A'}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="label"><i class="fas fa-graduation-cap"></i> 12th</div>
+                        <div class="value">${year12 || 'N/A'}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="label"><i class="fas fa-toilet"></i> Toilet</div>
+                        <div class="value">${toilet || 'N/A'}</div>
+                    </div>
+                    ${locationHtml}
+                </div>
+
+                ${remarksHtml}
+                ${pdfHtml}
+            `;
+
+            let detailContent = document.getElementById("detailContent");
+            if (detailContent) {
+                detailContent.innerHTML = html;
+            }
+
+            let detailModal = document.getElementById("detailModal");
+            if (detailModal) {
+                detailModal.classList.add("active");
+            }
+        }
+
+        // Close detail modal
+        function closeDetail() {
+            let detailModal = document.getElementById("detailModal");
+            if (detailModal) {
+                detailModal.classList.remove("active");
+            }
+        }
+
+        // Update statistics
+        function updateStats() {
+            let totalEl = document.getElementById("totalSurveys");
+            let toiletEl = document.getElementById("toiletCount");
+            let year12El = document.getElementById("year12Count");
+
+            if (totalEl) totalEl.textContent = allSurveys.length;
+            if (toiletEl) toiletEl.textContent = allSurveys.filter(s => s.toilet === 'Yes').length;
+            if (year12El) year12El.textContent = allSurveys.filter(s => s.year12 === 'Yes').length;
+        }
+
+        // Filter by category
+        function filterByCategory(category) {
+            currentFilter = category;
+            document.querySelectorAll('.chip').forEach((chip, index) => {
+                if (index === 0 && category === 'all') chip.classList.add('active');
+                else if (chip.textContent.includes(category)) chip.classList.add('active');
+                else chip.classList.remove('active');
+            });
+            displaySurveys();
+        }
+
+        // Search filter
+        function filterSurveys() {
+            let searchInput = document.getElementById("searchInput");
+            if (searchInput) {
+                searchTerm = searchInput.value;
+            }
+            displaySurveys();
+        }
+
+        // Toggle view
+        function toggleView(view) {
+            currentView = view;
+            let compactBtn = document.getElementById('compactViewBtn');
+            let gridBtn = document.getElementById('gridViewBtn');
+
+            if (view === 'compact') {
+                if (compactBtn) compactBtn.classList.add('active');
+                if (gridBtn) gridBtn.classList.remove('active');
+            } else {
+                if (gridBtn) gridBtn.classList.add('active');
+                if (compactBtn) compactBtn.classList.remove('active');
+            }
+            displaySurveys();
+        }
+
+        // ⭐ FIXED: Open form with fresh location
+        function openForm() {
+            // Reset form with "please select" options
+            let nameEl = document.getElementById("name");
+            let houseEl = document.getElementById("house");
+            let placeEl = document.getElementById("place");
+            let remarksEl = document.getElementById("remarks");
+            let wardEl = document.getElementById("ward");
+            let categoryEl = document.getElementById("category");
+            let year12El = document.getElementById("year12");
+            let toiletEl = document.getElementById("toilet");
+
+            if (nameEl) nameEl.value = "";
+            if (houseEl) houseEl.value = "";
+            if (placeEl) placeEl.value = "";
+            if (remarksEl) remarksEl.value = "";
+
+            // Reset selects to "please select"
+            if (wardEl) wardEl.value = "";
+            if (categoryEl) categoryEl.value = "";
+            if (year12El) year12El.value = "";
+            if (toiletEl) toiletEl.value = "";
+
+            // Clear photo files and inputs - ONLY 2
+            for (let i = 1; i <= 2; i++) {
+                let input = document.getElementById(`photo${i}`);
+                if (input) input.value = '';
+                photoFiles[i] = null;
+
+                let btn = document.getElementById(`photoBtn${i}`);
+                if (btn) {
+                    btn.innerHTML = `
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <span>Photo ${i}</span>
+                        <small>Tap to select</small>
+                    `;
+                    btn.classList.remove('has-image');
+                }
+            }
+
+            // Clear PDF
+            let pdfInput = document.getElementById("pdfFile");
+            if (pdfInput) pdfInput.value = "";
+
+            let pdfNameEl = document.getElementById("pdfName");
+            if (pdfNameEl) pdfNameEl.innerHTML = "";
+
+            updatePhotoStatus();
+
+            // ⭐ FIXED: Clear location before starting fresh
+            clearLocation();
+
+            // Show modal
+            let formModal = document.getElementById("formModal");
+            if (formModal) {
+                formModal.classList.add("active");
+            }
+
+            // ⭐ FIXED: Initialize map and start fresh location
+            setTimeout(() => {
+                initMap();
+                startProLocation();
+            }, 300);
+        }
+
+        function closeForm() {
+            let formModal = document.getElementById("formModal");
+            if (formModal) {
+                formModal.classList.remove("active");
+            }
+
+            // ⭐ FIXED: Clear location when closing form
+            clearLocation();
+        }
+
+        // Bottom navigation
+        function showHome(event) {
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            currentFilter = 'all';
+
+            let chips = document.querySelectorAll('.chip');
+            if (chips.length > 0) {
+                chips[0].classList.add('active');
+                chips.forEach((chip, i) => { if (i > 0) chip.classList.remove('active'); });
+            }
+
+            let searchInput = document.getElementById("searchInput");
+            if (searchInput) searchInput.value = '';
+            searchTerm = '';
+            displaySurveys();
+        }
+
+        function showFilter(event) {
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            let filterChips = document.querySelector('.filter-chips');
+            if (filterChips) {
+                filterChips.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        function showSearch(event) {
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            let searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.focus();
+            }
+        }
+
+        // Close modals when clicking outside
+        window.onclick = function (event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.classList.remove('active');
+                // ⭐ FIXED: Clear location when closing modal by clicking outside
+                if (event.target.id === 'formModal') {
+                    clearLocation();
+                }
+            }
+        }
+
+        // Initial load
+        loadList();
     </script>
+    <!-- ✅ Service Worker Register -->
     <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js');
